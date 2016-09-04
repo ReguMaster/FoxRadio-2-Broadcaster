@@ -50,8 +50,32 @@ namespace FoxRadio_2_Broadcaster_console
 		public static void InitializeCycle( )
 		{
 			CurrentSongIndex = 0;
-			CurrentSongTickLocation = 0;
-			CurrentSongTickMaxLocation = Music.FindSongByIndex( CurrentSongIndex ).SongLength;
+
+			SongList NewSong = Music.FindSongByIndex( CurrentSongIndex );
+
+			if ( File.Exists( NewSong.SongLocation ) )
+			{
+				FileStream FileStream = new FileStream( NewSong.SongLocation, FileMode.Open );
+				CurrentMusicMS = new MemoryStream( );
+				FileStream.CopyTo( CurrentMusicMS );
+				FileStream.Close( );
+				string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( CurrentMusicMS.ToArray( ) ) );
+
+				foreach ( Client Client in Server.Clients )
+				{
+					Client.SendData( data, ( ) =>
+					{
+						Console.WriteLine( Client.ClientData.Value.Nick + " : SEND MUSIC" );
+					} );
+				}
+
+				CurrentSongTickLocation = 0;
+				CurrentSongTickMaxLocation = NewSong.SongLength;
+			}
+			else
+			{
+				// Song Not found
+			}
 
 			SongTickTimer = new Timer( );
 			SongTickTimer.Interval = 1000;

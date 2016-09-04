@@ -27,7 +27,7 @@ namespace FoxRadio_2_Broadcaster_console
 			int index = ProtocolString.IndexOf( "#" );
 
 			if ( index > 0 )
-				return ProtocolString.Substring( 0, index ) == ( Convert.ToInt32(Protocol) ).ToString( );
+				return ProtocolString.Substring( 0, index ) == ( Convert.ToInt32( Protocol ) ).ToString( );
 			else
 				return false;
 		}

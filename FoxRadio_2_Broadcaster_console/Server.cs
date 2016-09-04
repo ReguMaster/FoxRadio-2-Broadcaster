@@ -23,7 +23,7 @@ namespace FoxRadio_2_Broadcaster_console
 
 			Music.LoadSongListFromFile( );
 			Music.InitializeCycle( );
-			Music.NextCycle( );
+			//Music.NextCycle( );
 
 			Console.WriteLine( "서버 초기화 됨!" );
 
