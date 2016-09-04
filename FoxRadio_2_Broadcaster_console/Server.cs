@@ -25,7 +25,7 @@ namespace FoxRadio_2_Broadcaster_console
 			Music.InitializeCycle( );
 			Music.NextCycle( );
 
-			Console.WriteLine( "Server Started!" );
+			Console.WriteLine( "서버 초기화 됨!" );
 
 			while ( true )
 			{
@@ -101,16 +101,17 @@ namespace FoxRadio_2_Broadcaster_console
 
 			Clients.Add( CLIENT );
 
-			Console.WriteLine( " <- " + Clients.Count );
+			Console.WriteLine( "클라이언트가 접속 ... [" + CLIENT.ClientData.Value.IP + "] [" + CLIENT.ClientData.Value.Nick + "]" );
+			Console.WriteLine( ( Clients.Count - 1 ) + " -> " + Clients.Count );
 		}
 
 		public static void ClientDisconnect( Client Client )
 		{
-			Console.WriteLine( "CLIENT DISCONNECT [SERVER]" );
+			Console.WriteLine( "클라이언트가 접속 종료 ... [" + Client.ClientData.Value.IP + "] [" + Client.ClientData.Value.Nick + "]" );
 			Clients.Remove( Client );
 			Client.CycleThread.Interrupt( );
 
-			Console.WriteLine( "-> " + Clients.Count );
+			Console.WriteLine( ( Clients.Count + 1 ) + " -> " + Clients.Count );
 
 			// For test
 			foreach ( Client cl in Clients )

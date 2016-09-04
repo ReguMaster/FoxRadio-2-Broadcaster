@@ -77,36 +77,35 @@ namespace FoxRadio_2_Broadcaster_console
 
 							if ( MessageProtocol == ServerProtocolMessage.Null )
 							{
-								Console.WriteLine( "NULL" );
+								Console.WriteLine( "오류 프로토콜" );
 							}
 							else
 							{
 								switch ( MessageProtocol )
 								{
 									case ServerProtocolMessage.ClientNickNameSet:
+										Console.WriteLine( "프로토콜 받음 : " + MessageProtocol + " [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
+
 										string NewNickName = Protocol.GetProtocolData( Message );
 
 										if ( NewNickName != "PROTOCOL_DATA_ERROR" )
 										{
-											Console.WriteLine( NewNickName );
 											ClientData = new ClientData( NewNickName, this.ClientData.Value.IP );
 
 											string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( Music.CurrentMusicMS.ToArray( ) ) );
 
 											SendData( data, ( ) =>
 											{
-												Console.WriteLine( ClientData.Value.Nick + " : SEND MUSIC" );
+												Console.WriteLine( "프로토콜 전송 : SEND MUSIC [" + ClientData.Value.IP + "] [" + ClientData.Value.Nick + "]" );
 
 												SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicSetLocation, Music.CurrentSongTickLocation.ToString( ) ), ( ) =>
 												{
-													Console.WriteLine( ClientData.Value.Nick + " : SEND MUSIC LOCATION" );
+													Console.WriteLine( "프로토콜 전송 : SEND MUSIC LOCATION [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
 												} );
 											} );
 										}
 										break;
 								}
-
-								Console.WriteLine( "PROTOCOL : " + MessageProtocol );
 							}
 
 						}
@@ -135,7 +134,6 @@ namespace FoxRadio_2_Broadcaster_console
 		{
 			if ( PrintConsoleLog )
 			{
-				Console.WriteLine( "Disconnected!" );
 				Server.ClientDisconnect( this );
 			}
 		}
