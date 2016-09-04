@@ -8,16 +8,18 @@ namespace FoxRadio_2_Broadcaster_console
 {
 	static class Protocol
 	{
-		public enum ServerProtocolMessage
+		public enum ServerProtocolMessage // 서버로 오는 프로토콜 메세지
 		{
 			Null,
 			ClientNickNameSet
 		};
 
-		public enum ClientProtocolMessage
+		public enum ClientProtocolMessage // 클라이언트로 보내는 프로토콜 메세지
 		{
 			Null,
-			NickNameInitialized
+			NickNameInitialized,
+			MusicPlay,
+			MusicSetLocation
 		};
 
 		public static bool IsProtocol<T>( string ProtocolString, T Protocol )
@@ -44,15 +46,11 @@ namespace FoxRadio_2_Broadcaster_console
 						return i;
 				}
 
-				Enum value = ( Enum ) Enum.ToObject( typeof( T ), 0 );
-
-				return ( T ) ( object ) value;
+				return ( T ) Enum.ToObject( typeof( T ), 0 );
 			}
 			else
 			{
-				Enum value = ( Enum ) Enum.ToObject( typeof( T ), 0 );
-
-				return ( T ) ( object ) value;
+				return ( T ) Enum.ToObject( typeof( T ), 0 );
 			}
 		}
 
@@ -68,9 +66,9 @@ namespace FoxRadio_2_Broadcaster_console
 				return "PROTOCOL_DATA_ERROR";
 		}
 
-		public static byte[ ] MakeProtocol<T>( T Protocol, string Data )
+		public static string MakeProtocol<T>( T Protocol, string Data )
 		{
-			return Encoding.UTF8.GetBytes( ( Convert.ToInt32( Protocol ) ) + Data );
+			return ( Convert.ToInt32( Protocol ) ) + "#" + Data;
 		}
 	}
 }

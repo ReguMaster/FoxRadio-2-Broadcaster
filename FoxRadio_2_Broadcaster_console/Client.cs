@@ -30,14 +30,20 @@ namespace FoxRadio_2_Broadcaster_console
 		private bool Initialized = false;
 		public ClientData? ClientData = null;
 		public Thread CycleThread = null;
+		private StreamWriter Writer = null;
+		private StreamReader Reader = null;
 
 		public void Initialize( string Nick, string IP )
 		{
 			ClientData = new ClientData( Nick, IP );
 
+			NetworkStream Stream = TCPClient.GetStream( );
+			Writer = new StreamWriter( Stream, Server.MessageEncode );
+			Reader = new StreamReader( Stream, Server.MessageEncode );
+
 			Console.WriteLine( "Client Initialized!" );
 
-			this.Initialized = true;
+			Initialized = true;
 		}
 
 		public static bool IsConnected( Socket Socket )
@@ -57,23 +63,17 @@ namespace FoxRadio_2_Broadcaster_console
 			}
 			else
 			{
-				NetworkStream stream = TCPClient.GetStream( );
-				Encoding encode = Encoding.GetEncoding( "ks_c_5601-1987" );
-				
-
 				while ( true )
 				{
 					Thread.Sleep( 100 );
 
 					if ( IsConnected( TCPSocket ) )
 					{
-						// DATA
 						try
 						{
-							StreamReader reader = new StreamReader( stream, encode );
-							string str = reader.ReadLine( );
+							string Message = Reader.ReadLine( );
 
-							ServerProtocolMessage MessageProtocol = Protocol.GetProtocol< ServerProtocolMessage>( str );
+							ServerProtocolMessage MessageProtocol = Protocol.GetProtocol<ServerProtocolMessage>( Message );
 
 							if ( MessageProtocol == ServerProtocolMessage.Null )
 							{
@@ -84,18 +84,35 @@ namespace FoxRadio_2_Broadcaster_console
 								switch ( MessageProtocol )
 								{
 									case ServerProtocolMessage.ClientNickNameSet:
-										string NewNickName = Protocol.GetProtocolData( str );
-										Console.WriteLine( NewNickName );
-										ClientData = new ClientData( NewNickName, this.ClientData.Value.IP );
+										string NewNickName = Protocol.GetProtocolData( Message );
+
+										if ( NewNickName != "PROTOCOL_DATA_ERROR" )
+										{
+											Console.WriteLine( NewNickName );
+											ClientData = new ClientData( NewNickName, this.ClientData.Value.IP );
+
+											string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( Music.CurrentMusicMS.ToArray( ) ) );
+
+											SendData( data, ( ) =>
+											{
+												Console.WriteLine( ClientData.Value.Nick + " : SEND MUSIC" );
+
+												SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicSetLocation, Music.CurrentSongTickLocation.ToString( ) ), ( ) =>
+												{
+													Console.WriteLine( ClientData.Value.Nick + " : SEND MUSIC LOCATION" );
+												} );
+											} );
+										}
 										break;
 								}
+
 								Console.WriteLine( "PROTOCOL : " + MessageProtocol );
 							}
-							
+
 						}
 						catch ( IOException )
 						{
-							
+
 						}
 					}
 					else
@@ -107,21 +124,13 @@ namespace FoxRadio_2_Broadcaster_console
 			}
 		}
 
-		public void Send( )
+		public void SendData( string ProtocolMessage, Action CallBack = null )
 		{
-			NetworkStream stream = TCPClient.GetStream( );
-			Encoding encode = Encoding.GetEncoding( "ks_c_5601-1987" );
-			StreamWriter writer = new StreamWriter( stream, encode );
-
-			writer.WriteLine( "1#SUCCESS" );
-			writer.Flush( );
-
-			Console.WriteLine( "WRITE!" );
-
-			
-			//MakeProtocol( MessageProtocol Protocol, string Data )
+			Writer.WriteLine( ProtocolMessage );
+			Writer.Flush( );
+			CallBack?.Invoke( );
 		}
-
+		
 		public void Disconnect( bool PrintConsoleLog = true )
 		{
 			if ( PrintConsoleLog )
