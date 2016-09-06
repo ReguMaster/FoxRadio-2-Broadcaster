@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using static FoxRadio_2_Broadcaster_console.Protocol;
 
 namespace FoxRadio_2_Broadcaster_console
 {
@@ -18,18 +14,18 @@ namespace FoxRadio_2_Broadcaster_console
 
 		public static void Start( )
 		{
-			TcpListener SERVER = new TcpListener( IPAddress.Parse( "182.212.36.48" ), 12345 );
+			TcpListener SERVER = new TcpListener( IPAddress.Parse( ConfigDataTable.GetData<string>( "IP" ) ), 12345 );
 			SERVER.Start( );
 
 			Music.LoadSongListFromFile( );
 			Music.InitializeCycle( );
-			//Music.NextCycle( );
+			Music.NextCycle( );
 
 			Console.WriteLine( "서버 초기화 됨!" );
 
 			while ( true )
 			{
-				System.Threading.Thread.Sleep( 100 );
+				Thread.Sleep( 100 );
 
 				TcpClient clientsocket = SERVER.AcceptTcpClient( );
 
@@ -46,55 +42,6 @@ namespace FoxRadio_2_Broadcaster_console
 			CLIENT.TCPSocket = ClientSocket.Client;
 			CLIENT.CycleThread = Cycle;
 			CLIENT.Initialize( "NULL_NICK_NAME", ClientSocket.Client.RemoteEndPoint.ToString( ) );
-			/*
-			CLIENT.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.NickNameInitialized, "L7D" ), ( ) =>
-			{
-				Console.WriteLine( CLIENT.ClientData.Value.Nick + " : NICK SEND" );
-			} );
-
-			string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( Music.CurrentMusicMS.ToArray( ) ) );
-
-			CLIENT.SendData( data, ( ) =>
-			{
-				Console.WriteLine( CLIENT.ClientData.Value.Nick + " : SEND MUSIC" );
-
-				CLIENT.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicSetLocation, Music.CurrentSongTickLocation.ToString( ) ), ( ) =>
-				{
-					Console.WriteLine( CLIENT.ClientData.Value.Nick + " : SEND MUSIC LOCATION" );
-				} );
-			} );
-			*/
-			/*
-			using ( MemoryStream ms = Music.LoadFromFile( @"C:\Users\L7D\Music\F-777 - The 7 Seas.mp3" ) )
-			{
-				ms.Position = 0;
-				Console.WriteLine( ms.Length );
-				Console.WriteLine( ms.ToArray( ).Length );
-
-				string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( ms.ToArray( ) ) );
-				CLIENT.SendData( data, ( ) =>
-				{
-					Console.WriteLine( "PROTOCOL MESSAGE SEND TWO!!!!!" );
-				} );
-			}*/
-
-
-			//using ( MemoryStream ms = Music.LoadFromFile( @"C:\Users\L7D\Music\BLACKPINK-01-휘파람.mp3" ) )
-			//{
-			//	ms.Position = 0;
-			//	var sr = new StreamReader( ms );
-			//	string myStr = sr.ReadToEnd( );
-
-			//	File.WriteAllBytes( "music.mp3", ms.ToArray( ) );
-			//	CLIENT.SendByteData( Protocol.MakeByteProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, ms.ToArray( ) ), ( ) =>
-			//	{
-			//		Console.WriteLine( "MUSIC PROTOCOL MESSAGE SEND!!!!!" );
-			//	} );
-
-			//}
-
-			//Console.WriteLine( Encoding.ASCII.GetString( ms.ToArray( ) ) );
-
 
 			Cycle.IsBackground = true;
 			Cycle.Start( );
@@ -112,12 +59,6 @@ namespace FoxRadio_2_Broadcaster_console
 			Client.CycleThread.Interrupt( );
 
 			Console.WriteLine( ( Clients.Count + 1 ) + " -> " + Clients.Count );
-
-			// For test
-			foreach ( Client cl in Clients )
-			{
-				//Console.WriteLine( cl.ClientData.Value.IP + " / " + cl.ClientData.Value.Nick );
-			}
 		}
 	}
 }

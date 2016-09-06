@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,6 +14,8 @@ namespace FoxRadio_2_Broadcaster_console
 		static void Main( string[ ] args )
 		{
 			Console.Title = "Fox Radio 2 Broadcaster Server CUI - DeveloFOX Studio";
+
+			ConfigDataTable.Parse( );
 			Server.Start( );
 		}
 	}

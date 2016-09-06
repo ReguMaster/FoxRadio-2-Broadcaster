@@ -107,7 +107,6 @@ namespace FoxRadio_2_Broadcaster_console
 										break;
 								}
 							}
-
 						}
 						catch ( IOException )
 						{
@@ -129,7 +128,7 @@ namespace FoxRadio_2_Broadcaster_console
 			Writer.Flush( );
 			CallBack?.Invoke( );
 		}
-		
+
 		public void Disconnect( bool PrintConsoleLog = true )
 		{
 			if ( PrintConsoleLog )

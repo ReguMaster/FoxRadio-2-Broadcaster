@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using static FoxRadio_2_Broadcaster_console.Protocol;
+//using static FoxRadio_2_Broadcaster_console.Protocol;
 
 namespace FoxRadio_2_Broadcaster_console
 {
@@ -74,7 +75,7 @@ namespace FoxRadio_2_Broadcaster_console
 			}
 			else
 			{
-				// Song Not found
+				// Song file Not found
 			}
 
 			SongTickTimer = new Timer( );
@@ -127,23 +128,10 @@ namespace FoxRadio_2_Broadcaster_console
 			if ( CurrentSongTickMaxLocation > CurrentSongTickLocation )
 			{
 				CurrentSongTickLocation++;
-				Console.WriteLine( "CUR " + CurrentSongTickLocation + " / " + CurrentSongTickMaxLocation );
+				Console.WriteLine( "Current Song Position : " + CurrentSongTickLocation + " / " + CurrentSongTickMaxLocation );
 			}
 			else
-			{
 				NextCycle( );
-			}
-		}
-
-		public static MemoryStream LoadFromFile( string FileDir )
-		{
-			FileStream FileStream = new FileStream( FileDir, FileMode.Open );
-
-			MemoryStream MS = new MemoryStream( );
-			FileStream.CopyTo( MS );
-			FileStream.Close( );
-
-			return MS;
 		}
 	}
 }
