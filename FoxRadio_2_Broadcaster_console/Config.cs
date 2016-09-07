@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FoxRadio_2_Broadcaster_console
 {
-	static class ConfigDataTable
+	static class Config
 	{
 		private const string CONFIG_FILE_DIR = "config.txt";
 		public enum ConfigType

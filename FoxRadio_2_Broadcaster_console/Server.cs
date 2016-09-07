@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using static FoxRadio_2_Broadcaster_console.Protocol;
 
 namespace FoxRadio_2_Broadcaster_console
 {
@@ -14,7 +15,7 @@ namespace FoxRadio_2_Broadcaster_console
 
 		public static void Start( )
 		{
-			TcpListener SERVER = new TcpListener( IPAddress.Parse( ConfigDataTable.GetData<string>( "IP" ) ), 12345 );
+			TcpListener SERVER = new TcpListener( IPAddress.Parse( Config.GetData<string>( "IP" ) ), 12345 );
 			SERVER.Start( );
 
 			Music.LoadSongListFromFile( );
@@ -40,7 +41,7 @@ namespace FoxRadio_2_Broadcaster_console
 			CLIENT.TCPClient = ClientSocket;
 			CLIENT.TCPSocket = ClientSocket.Client;
 			CLIENT.CycleThread = Cycle;
-			CLIENT.Initialize( "NULL_NICK_NAME", ClientSocket.Client.RemoteEndPoint.ToString( ) );
+			CLIENT.Initialize( "NULL_NICK_NAME", ClientSocket.Client.RemoteEndPoint.ToString( ), false );
 
 			Cycle.IsBackground = true;
 			Cycle.Start( );
@@ -49,6 +50,11 @@ namespace FoxRadio_2_Broadcaster_console
 
 			Console.WriteLine( "클라이언트가 접속 ... [" + CLIENT.ClientData.Value.IP + "] [" + CLIENT.ClientData.Value.Nick + "]" );
 			Console.WriteLine( ( Clients.Count - 1 ) + " -> " + Clients.Count );
+
+			foreach ( Client Client in Server.Clients )
+			{
+				Client.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.ClientCountSend, Clients.Count.ToString( ) ) );
+			}
 		}
 
 		public static void ClientDisconnect( Client Client )
@@ -58,6 +64,11 @@ namespace FoxRadio_2_Broadcaster_console
 			Client.CycleThread.Interrupt( );
 
 			Console.WriteLine( ( Clients.Count + 1 ) + " -> " + Clients.Count );
+
+			foreach ( Client Client2 in Server.Clients )
+			{
+				Client2.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.ClientCountSend, Clients.Count.ToString( ) ) );
+			}
 		}
 	}
 }

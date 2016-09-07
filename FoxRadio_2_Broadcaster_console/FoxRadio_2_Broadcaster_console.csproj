@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ban.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Music.cs" />

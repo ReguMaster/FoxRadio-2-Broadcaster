@@ -15,7 +15,8 @@ namespace FoxRadio_2_Broadcaster_console
 		{
 			Console.Title = "Fox Radio 2 Broadcaster Server CUI - DeveloFOX Studio";
 
-			ConfigDataTable.Parse( );
+			Ban.Parse( );
+			Config.Parse( );
 			Server.Start( );
 		}
 	}

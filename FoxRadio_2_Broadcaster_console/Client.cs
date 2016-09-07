@@ -15,11 +15,13 @@ namespace FoxRadio_2_Broadcaster_console
 	{
 		public string Nick;
 		public string IP;
+		public bool FailedVersion;
 
-		public ClientData( string Nick, string IP )
+		public ClientData( string Nick, string IP, bool FailedVersion )
 		{
 			this.Nick = Nick;
 			this.IP = IP;
+			this.FailedVersion = FailedVersion;
 		}
 	}
 
@@ -33,9 +35,9 @@ namespace FoxRadio_2_Broadcaster_console
 		private StreamWriter Writer = null;
 		private StreamReader Reader = null;
 
-		public void Initialize( string Nick, string IP )
+		public void Initialize( string Nick, string IP, bool FailedVersion )
 		{
-			ClientData = new ClientData( Nick, IP );
+			ClientData = new ClientData( Nick, IP, FailedVersion );
 
 			NetworkStream Stream = TCPClient.GetStream( );
 			Writer = new StreamWriter( Stream, Server.MessageEncode );
@@ -83,27 +85,32 @@ namespace FoxRadio_2_Broadcaster_console
 							{
 								switch ( MessageProtocol )
 								{
-									case ServerProtocolMessage.ClientNickNameSet:
+									case ServerProtocolMessage.VersionCheck: // 버전 필터링
+										string Version = Protocol.GetProtocolData( Message );
+
+										ClientData = new ClientData( this.ClientData.Value.Nick, this.ClientData.Value.IP, false );
+										break;
+									case ServerProtocolMessage.Initialize:
 										Console.WriteLine( "프로토콜 받음 : " + MessageProtocol + " [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
 
 										string NewNickName = Protocol.GetProtocolData( Message );
 
-										/*
-										if ( NewNickName == "L7D" )
+										if ( NewNickName != "PROTOCOL_DATA_ERROR" && NewNickName.Length >= 3 && NewNickName.Length <= 18 )
 										{
-											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.NickNameCantUse, "ERROR" ), ( ) =>
+											if ( Ban.IsBanned( ClientData.Value.IP ) )
 											{
+												SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.CantConnect, "B" ) );
+												break;
+											}
+											if ( ClientData.Value.FailedVersion )
+											{
+												SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.CantConnect, "최신 버전의 Fox Radio 2 로 업데이트 하세요." ) );
+												break;
+											}
 
-											} );
+											ClientData = new ClientData( NewNickName, this.ClientData.Value.IP, false );
 
-											break;
-										}*/
-										
-										if ( NewNickName != "PROTOCOL_DATA_ERROR" )
-										{
-											ClientData = new ClientData( NewNickName, this.ClientData.Value.IP );
-
-											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.NickNameInitialized, "SUCCESS" ), ( ) =>
+											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.NickNameInitialized, "S" ), ( ) =>
 											{
 												string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( Music.CurrentMusicMS.ToArray( ) ) );
 
@@ -118,14 +125,13 @@ namespace FoxRadio_2_Broadcaster_console
 												} );
 											} );
 										}
+										else
+											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.CantConnect, "N" ) );
 										break;
 								}
 							}
 						}
-						catch ( IOException )
-						{
-							Console.WriteLine( "Exception!" );
-						}
+						catch ( IOException ) { }
 					}
 					else
 					{
