@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using static FoxRadio_2_Broadcaster_console.Protocol;
-//using static FoxRadio_2_Broadcaster_console.Protocol;
 
 namespace FoxRadio_2_Broadcaster_console
 {
@@ -62,16 +61,21 @@ namespace FoxRadio_2_Broadcaster_console
 				FileStream.Close( );
 				string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( CurrentMusicMS.ToArray( ) ) );
 
+				CurrentSongTickLocation = 0;
+				CurrentSongTickMaxLocation = NewSong.SongLength;
+
 				foreach ( Client Client in Server.Clients )
 				{
 					Client.SendData( data, ( ) =>
 					{
-						Console.WriteLine( Client.ClientData.Value.Nick + " : SEND MUSIC" );
+						Console.WriteLine( "전송 ...! : SEND MUSIC" );
+
+						Client.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicInformation, Music.MakeSongInformationForProtocolSend( Music.GetCurrentSong( ) ) ), ( ) =>
+						{
+							Console.WriteLine( "전송 ...! : SEND MUSIC INFORMATION [ " + Client.ClientData.Value.IP + " ][ " + Client.ClientData.Value.Nick + " ]" );
+						} );
 					} );
 				}
-
-				CurrentSongTickLocation = 0;
-				CurrentSongTickMaxLocation = NewSong.SongLength;
 			}
 			else
 			{
@@ -99,18 +103,24 @@ namespace FoxRadio_2_Broadcaster_console
 				CurrentMusicMS = new MemoryStream( );
 				FileStream.CopyTo( CurrentMusicMS );
 				FileStream.Close( );
+
+				CurrentSongTickLocation = 0;
+				CurrentSongTickMaxLocation = NewSong.SongLength;
+
 				string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( CurrentMusicMS.ToArray( ) ) );
 
 				foreach ( Client Client in Server.Clients )
 				{
 					Client.SendData( data, ( ) =>
 					{
-						Console.WriteLine( Client.ClientData.Value.Nick + " : SEND MUSIC" );
-					} );
-				}
+						Console.WriteLine( "전송 ...! : SEND MUSIC" );
 
-				CurrentSongTickLocation = 0;
-				CurrentSongTickMaxLocation = NewSong.SongLength;
+                        Client.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicInformation, Music.MakeSongInformationForProtocolSend( Music.GetCurrentSong( ) ) ), ( ) =>
+                        {
+                            Console.WriteLine( "전송 ...! : SEND MUSIC INFORMATION [ " + Client.ClientData.Value.IP + " ][ " + Client.ClientData.Value.Nick + " ]" );
+                        } );
+                    } );
+				}
 			}
 			else
 			{
@@ -121,6 +131,16 @@ namespace FoxRadio_2_Broadcaster_console
 		public static SongList FindSongByIndex( int Index )
 		{
 			return Songs[ Index ];
+		}
+
+		public static SongList GetCurrentSong( )
+		{
+			return Songs[ CurrentSongIndex ];
+		}
+
+		public static string MakeSongInformationForProtocolSend( SongList Song )
+		{
+			return string.Format( "{0}#{1}#{2}", Song.SongName, Song.SongAuthor, CurrentSongTickLocation );
 		}
 
 		private static void SongTickTimer_Elapsed( object sender, ElapsedEventArgs e )

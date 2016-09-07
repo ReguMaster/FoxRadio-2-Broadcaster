@@ -88,19 +88,33 @@ namespace FoxRadio_2_Broadcaster_console
 
 										string NewNickName = Protocol.GetProtocolData( Message );
 
+										/*
+										if ( NewNickName == "L7D" )
+										{
+											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.NickNameCantUse, "ERROR" ), ( ) =>
+											{
+
+											} );
+
+											break;
+										}*/
+										
 										if ( NewNickName != "PROTOCOL_DATA_ERROR" )
 										{
 											ClientData = new ClientData( NewNickName, this.ClientData.Value.IP );
 
-											string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( Music.CurrentMusicMS.ToArray( ) ) );
-
-											SendData( data, ( ) =>
+											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.NickNameInitialized, "SUCCESS" ), ( ) =>
 											{
-												Console.WriteLine( "프로토콜 전송 : SEND MUSIC [" + ClientData.Value.IP + "] [" + ClientData.Value.Nick + "]" );
+												string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( Music.CurrentMusicMS.ToArray( ) ) );
 
-												SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicSetLocation, Music.CurrentSongTickLocation.ToString( ) ), ( ) =>
+												SendData( data, ( ) =>
 												{
-													Console.WriteLine( "프로토콜 전송 : SEND MUSIC LOCATION [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
+													Console.WriteLine( "프로토콜 전송 : SEND MUSIC [" + ClientData.Value.IP + "] [" + ClientData.Value.Nick + "]" );
+
+													SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicInformation, Music.MakeSongInformationForProtocolSend( Music.GetCurrentSong( ) ) ), ( ) =>
+													{
+														Console.WriteLine( "프로토콜 전송 : SEND MUSIC INFORMATION [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
+													} );
 												} );
 											} );
 										}
@@ -110,7 +124,7 @@ namespace FoxRadio_2_Broadcaster_console
 						}
 						catch ( IOException )
 						{
-
+							Console.WriteLine( "Exception!" );
 						}
 					}
 					else

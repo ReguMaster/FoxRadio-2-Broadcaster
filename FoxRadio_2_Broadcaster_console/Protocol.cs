@@ -18,8 +18,10 @@ namespace FoxRadio_2_Broadcaster_console
 		{
 			Null,
 			NickNameInitialized,
+			NickNameCantUse,
 			MusicPlay,
-			MusicSetLocation
+			MusicSetLocation,
+			MusicInformation
 		};
 
 		public static bool IsProtocol<T>( string ProtocolString, T Protocol )

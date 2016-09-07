@@ -10,7 +10,7 @@ namespace FoxRadio_2_Broadcaster_console
 	public static class Server
 	{
 		public static List<Client> Clients = new List<Client>( );
-		public static Encoding MessageEncode = Encoding.GetEncoding( "utf-8" );
+		public static Encoding MessageEncode = Encoding.GetEncoding( "ks_c_5601-1987" );
 
 		public static void Start( )
 		{
@@ -19,7 +19,6 @@ namespace FoxRadio_2_Broadcaster_console
 
 			Music.LoadSongListFromFile( );
 			Music.InitializeCycle( );
-			Music.NextCycle( );
 
 			Console.WriteLine( "서버 초기화 됨!" );
 
