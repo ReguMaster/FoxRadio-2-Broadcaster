@@ -9,7 +9,7 @@ namespace FoxRadio_2_Broadcaster_console
 {
 	static class Config
 	{
-		private const string CONFIG_FILE_DIR = "config.txt";
+		private const string CONFIG_FILE_DIR = "CONFIG.cfg";
 		public enum ConfigType
 		{
 			String,
@@ -18,18 +18,28 @@ namespace FoxRadio_2_Broadcaster_console
 		}
 		public static Hashtable ConfigData = new Hashtable( );
 
-		public static void Parse( )
+		public static bool Load( )
 		{
-			foreach ( string i in System.IO.File.ReadAllLines( CONFIG_FILE_DIR ) )
+			if ( System.IO.File.Exists( CONFIG_FILE_DIR ) )
 			{
-				if ( string.IsNullOrEmpty( i ) ) continue;
-				if ( i.StartsWith( "[" ) && i.EndsWith( "]" ) ) continue;
+				foreach ( string i in System.IO.File.ReadAllLines( CONFIG_FILE_DIR ) )
+				{
+					if ( string.IsNullOrEmpty( i ) ) continue;
+					if ( i.StartsWith( "[" ) && i.EndsWith( "]" ) ) continue;
 
-				string[ ] c = i.Split( new char[ ] { '=' }, StringSplitOptions.RemoveEmptyEntries );
+					string[ ] c = i.Split( new char[ ] { '=' }, StringSplitOptions.RemoveEmptyEntries );
 
-				if ( c.Length == 2 )
-					ConfigData[ c[ 0 ].Trim( ) ] = c[ 1 ].Trim( );
+					if ( c.Length == 2 )
+					{
+						ConfigData[ c[ 0 ].Trim( ) ] = c[ 1 ].Trim( );
+						Console.WriteLine( "CONFIG Register : {0} -> {1}", c[ 0 ].Trim( ), c[ 1 ].Trim( ) );
+					}
+				}
+
+				return true;
 			}
+			else
+				return false;
 		}
 
 		public static T GetData<T>( string ID, Action<string> ErrorCallBack = null, T Default = default( T ) )

@@ -12,7 +12,8 @@ namespace FoxRadio_2_Broadcaster_console
 		{
 			Null,
 			Initialize,
-			VersionCheck
+			VersionCheck,
+			ChatParse
 		};
 
 		public enum ClientProtocolMessage // 클라이언트로 보내는 프로토콜 메세지
@@ -23,7 +24,8 @@ namespace FoxRadio_2_Broadcaster_console
 			MusicPlay,
 			MusicSetLocation,
 			MusicInformation,
-			ClientCountSend
+			ClientCountSend,
+			ChatReceive
 		};
 
 		public static bool IsProtocol<T>( string ProtocolString, T Protocol )

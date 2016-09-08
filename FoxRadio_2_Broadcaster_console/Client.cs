@@ -93,7 +93,7 @@ namespace FoxRadio_2_Broadcaster_console
 									case ServerProtocolMessage.Initialize:
 										Console.WriteLine( "프로토콜 받음 : " + MessageProtocol + " [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
 
-										string NewNickName = Protocol.GetProtocolData( Message );
+										string NewNickName = Protocol.GetProtocolData( Message ).Trim( );
 
 										if ( NewNickName != "PROTOCOL_DATA_ERROR" && NewNickName.Length >= 3 && NewNickName.Length <= 18 )
 										{
@@ -112,21 +112,70 @@ namespace FoxRadio_2_Broadcaster_console
 
 											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.NickNameInitialized, "S" ), ( ) =>
 											{
-												string data = Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Convert.ToBase64String( Music.CurrentMusicMS.ToArray( ) ) );
-
-												SendData( data, ( ) =>
+												SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicPlay, Music.MusicBase64Cache ), ( ) =>
 												{
-													Console.WriteLine( "프로토콜 전송 : SEND MUSIC [" + ClientData.Value.IP + "] [" + ClientData.Value.Nick + "]" );
+													Console.WriteLine( "데이터 전송 : SEND MUSIC [" + ClientData.Value.IP + "] [" + ClientData.Value.Nick + "]" );
 
 													SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.MusicInformation, Music.MakeSongInformationForProtocolSend( Music.GetCurrentSong( ) ) ), ( ) =>
 													{
-														Console.WriteLine( "프로토콜 전송 : SEND MUSIC INFORMATION [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
+														Console.WriteLine( "데이터 전송 : SEND MUSIC INFORMATION [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ]" );
 													} );
 												} );
 											} );
+
+											for ( int i = 0; i < Server.Clients.Count; i++ )
+											{
+												Server.Clients[ i ].SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.ChatReceive, ClientData.Value.Nick + " 님이 음악을 같이 듣고 있습니다 :)" ) );
+											}
 										}
 										else
 											SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.CantConnect, "N" ) );
+										break;
+									case ServerProtocolMessage.ChatParse:
+										string Name = ClientData.Value.Nick;
+										string Chat = Protocol.GetProtocolData( Message );
+										string IP = ClientData.Value.IP;
+										bool IsAdmin = false;
+
+										if ( IP.IndexOf( ':' ) > 0 )
+										{
+											IP = IP.Substring( 0, IP.IndexOf( ':' ) );
+										}
+
+										if ( IP == "182.212.36.48" ) // Admin Check
+											IsAdmin = true;
+
+										/*
+										public enum ChatMessageType
+										{
+											My,
+											Another,
+											MyAdmin,
+											AnotherAdmin
+										}
+										*/
+
+
+										for ( int i = 0; i < Server.Clients.Count; i++ )
+										{
+											Client Client = Server.Clients[ i ];
+
+											if ( IsAdmin )
+											{
+												if ( Client.ClientData.Value.IP == ClientData.Value.IP )
+													Client.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.ChatReceive, "[관리자] " + Name + "#" + Chat + "#2" ) );
+												else
+													Client.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.ChatReceive, "[관리자] " + Name + "#" + Chat + "#3" ) );
+											}
+											else
+											{
+												if ( Client.ClientData.Value.IP == ClientData.Value.IP )
+													Client.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.ChatReceive, Name + "#" + Chat + "#0" ) );
+												else
+													Client.SendData( Protocol.MakeProtocol<ClientProtocolMessage>( ClientProtocolMessage.ChatReceive, Name + "#" + Chat + "#1" ) );
+											}
+
+										}
 										break;
 								}
 							}
@@ -142,11 +191,27 @@ namespace FoxRadio_2_Broadcaster_console
 			}
 		}
 
-		public void SendData( string ProtocolMessage, Action CallBack = null )
+		public void SendData( string ProtocolMessage, Action CallBack = null, int Retry = 0 )
 		{
-			Writer.WriteLine( ProtocolMessage );
-			Writer.Flush( );
-			CallBack?.Invoke( );
+			Retry++;
+
+			try
+			{
+				Writer.WriteLine( ProtocolMessage );
+				Writer.Flush( );
+				CallBack?.Invoke( );
+			}
+			catch ( IOException ex )
+			{
+				if ( Retry < 2 )
+				{
+					Console.WriteLine( "IOException : " + ex.Message + " [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ] RETRY : " + Retry + "\n\n" +ex.StackTrace );
+					SendData( ProtocolMessage, CallBack, Retry );
+				}
+				else
+					Console.WriteLine( "CRITICAL!!!!!!!! IOException : " + ex.Message + " [ " + ClientData.Value.IP + " ][ " + ClientData.Value.Nick + " ] RETRY : " + Retry );
+				
+			}
 		}
 
 		public void Disconnect( bool PrintConsoleLog = true )

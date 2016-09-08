@@ -15,9 +15,22 @@ namespace FoxRadio_2_Broadcaster_console
 		{
 			Console.Title = "Fox Radio 2 Broadcaster Server CUI - DeveloFOX Studio";
 
-			Ban.Parse( );
-			Config.Parse( );
-			Server.Start( );
+			bool BAN_LOAD_SUCCESS = Ban.Load( );
+
+			if ( BAN_LOAD_SUCCESS )
+				Console.WriteLine( "Ban data Loaded. [" + Ban.BanData.Count + " 's Ban data]" );
+			else
+				Console.WriteLine( "Ban data Load failed." );
+
+			bool CONFIG_LOAD_SUCCESS = Config.Load( );
+
+			if ( CONFIG_LOAD_SUCCESS )
+				Console.WriteLine( "Config data Loaded." );
+			else
+				Console.WriteLine( "Config data Load failed." );
+			
+			if ( BAN_LOAD_SUCCESS && CONFIG_LOAD_SUCCESS )
+				Server.Start( );
 		}
 	}
 }

@@ -9,21 +9,31 @@ namespace FoxRadio_2_Broadcaster_console
 {
 	static class Ban
 	{
-		private const string BAN_FILE_DIR = "ban.txt";
+		private const string BAN_FILE_DIR = "BAN.cfg";
 		public static List<string> BanData = new List<string>( );
 
-		public static void Parse( )
+		public static bool Load( )
 		{
-			foreach ( string i in System.IO.File.ReadAllLines( BAN_FILE_DIR ) )
+			if ( System.IO.File.Exists( BAN_FILE_DIR ) )
 			{
-				if ( string.IsNullOrEmpty( i ) ) continue;
-				if ( i.StartsWith( "[" ) && i.EndsWith( "]" ) ) continue;
+				foreach ( string i in System.IO.File.ReadAllLines( BAN_FILE_DIR ) )
+				{
+					if ( string.IsNullOrEmpty( i ) ) continue;
+					if ( i.StartsWith( "[" ) && i.EndsWith( "]" ) ) continue;
 
-				string[ ] c = i.Split( new char[ ] { '\n' }, StringSplitOptions.RemoveEmptyEntries );
+					string[ ] c = i.Split( new char[ ] { '\n' }, StringSplitOptions.RemoveEmptyEntries );
 
-				if ( c.Length == 1 )
-					BanData.Add( c[ 0 ] );
+					if ( c.Length == 1 )
+					{
+						BanData.Add( c[ 0 ] );
+						Console.WriteLine( "BAN Register : {0}", c[ 0 ] );
+					}
+				}
+
+				return true;
 			}
+			else
+				return false;
 		}
 
 		public static bool IsBanned( string IP )
